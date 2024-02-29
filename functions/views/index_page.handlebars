@@ -1,0 +1,350 @@
+<style>
+    
+</style>
+
+<div class="container">
+    <div class="card text-bg-info mt-3">
+        <!--<div class="card-header">本月累計</div>-->
+        <div class="card-body">
+            <p class="js-date-range">本月累計 {{dateRange.startDate}} ~ {{dateRange.endDate}}</p>
+            <h5 class="js-num-total">$ {{total}}</h5>
+            <a href="#" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#add-modal"><i class="fa fa-plus-circle"></i> 增加項目 </a>
+        </div>
+    </div>
+    <div class="panel mt-3 mb-3">
+        <div class="d-flex justify-content-between">
+            <div>@記錄</div>
+            <!--<div class="btn-toolbar">
+                <div class="btn-group me-2">
+                    <button type="button" class="btn btn-outline-info"><i class="fa fa-trash-alt"></i></button>
+                    <button type="button" class="btn btn-outline-info"><i class="fa fa-history"></i></button>
+                </div>
+            </div>-->
+            <div class="dropdown">
+                <button type="button" class="btn btn-outline-info dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" >
+                    <i class="fa fa-history"></i> 歷史
+                </button>
+                <form class="dropdown-menu p-4" style="min-width:250px;">
+                    <div class="mb-3">
+                        <label for="js-month" class="form-label">月份</label>
+                        <input type="month" class="form-control" id="js-month">
+                    </div>
+                    <!--<div class="mb-3">
+                        <label for="js-start-date" class="form-label">開始時間</label>
+                        <input type="date" class="form-control" id="js-start-date" >
+                    </div>
+                    <div class="mb-3">
+                        <label for="js-end-date" class="form-label">結束時間</label>
+                        <input type="date" class="form-control" id="js-end-date">
+                    </div>-->
+                    <button type="submit" class="btn btn-primary" id="js-query-date">確認查詢</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="bill-history js-bill-history">
+            {{#each bill}}
+            <div class="item">
+                <div style="width:70%">
+                    <input type="hidden" id="js-doc-{{@index}}" value="{{docID}}"/>
+                    <div class="title text-truncate" style="color: var(--bs-info-text-emphasis)">{{name}}</div>
+                    <div class="sumarry text-truncate">- {{desc}}</div>
+                    <div class="small-txt">{{billDate}}</div>
+                </div>
+                <div class="bill">
+                    {{{DisplayNumber splitBy num }}}
+                    <div class="dropdown">
+                        <button type="button" class="btn btn-dark" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fa-solid fa-ellipsis"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item js-remove-btn" href="#" id="js-remove-{{@index}}"><i class="fa-regular fa-trash-can"></i> 移除</a></li>
+                            <li><a class="dropdown-item js-edit-btn" href="#" id="js-edit-{{@index}}"><i class="fa-regular fa-pen-to-square"></i> 修改</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {{/each}}
+        </div>
+    </div>
+
+    <div class="modal fade" tabindex="-1" id="add-modal" aria-labelledby="add-modal-label" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">增加項目</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row justify-content-md-center">
+                        <div class="col">
+                            <form class="">
+                                <div class="mb-3">
+                                    <label for="bill-name" class="form-label">項目名稱 <span class="badge text-bg-danger">必填</span></label>
+                                    <input type="text" class="form-control" id="bill-name" aria-describedby="bill-name-help">
+
+                                </div>
+                                <div class="mb-3">
+                                    <label for="bill-desc" class="form-label">備註說明</label>
+                                    <textarea type="text" class="form-control" id="bill-desc" rows="3"></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="bill-name" class="form-label">金額（NT）<span class="badge text-bg-danger">必填</span></label>
+                                    <input type="number" class="form-control" id="bill-number">
+                                    <!--<input type="number" class="form-control is-invalid" id="bill-number">-->
+                                </div>
+                                <div class="mb-3">
+                                    <label for="bill-split-type" class="form-label">拆分金額 <span class="badge text-bg-danger">必填</span></label>
+                                    <select class="form-select" id="bill-split-type" aria-describedby="bill-split-help">
+                                        <option selected>選擇...</option>
+                                        <option value="0">不拆分</option>
+                                        <option value="2">/2</option>
+                                        <option value="3">/3</option>
+                                        <option value="4">/4</option>
+                                    </select>
+                                    <div id="bill-split-help" class="form-text">選擇是否需要拆分金額</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="bill-date" class="form-label">記錄日期</label>
+                                    <input type="date" class="form-control" id="bill-date" aria-describedby="bill-date-help">
+                                    <div id="bill-date-help" class="form-text">預設會是當天的日期</div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
+                    <button type="button" class="btn btn-primary" id="js-save-bill">確認儲存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script id="hbs-bill" type="text/x-handlebars-template">
+    \{{#each hbs_bill}}
+    <div class="item">
+        <div style="width:70%">
+            <input type="hidden" id="js-doc-\{{@index}}" value="\{{docID}}" />
+            <div class="title text-truncate" style="color: var(--bs-info-text-emphasis)">\{{name}}</div>
+            <div class="sumarry text-truncate">- \{{desc}}</div>
+            <div class="small-txt">\{{billDate}}</div>
+        </div>
+        <div class="bill">
+            \{{{DisplayNumber splitBy num }}}
+            <div class="dropdown">
+                <button type="button" class="btn btn-dark" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fa-solid fa-ellipsis"></i>
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item js-remove-btn" href="#" id="js-remove-\{{@index}}"><i class="fa-regular fa-trash-can"></i> 移除</a></li>
+                    <li><a class="dropdown-item js-edit-btn" href="#" id="js-edit-\{{@index}}"><i class="fa-regular fa-pen-to-square"></i> 修改</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    \{{/each}}
+</script>
+    
+<script>
+    Handlebars.registerHelper("DisplayNumber", function (splitBy, num) {
+        if (splitBy == 0) {
+            return `<div>$${num}</div>`;
+        }
+        else {
+            return `<div>$${(Number(num) / Number(splitBy)).toFixed(2)}</div><div class="small-txt">$${num}/${splitBy}</div>`;
+        }
+    });
+
+    function FormatDate(date = new Date()) {
+        const year = date.toLocaleString('default', { year: 'numeric' });
+        const month = date.toLocaleString('default', {
+            month: '2-digit',
+        });
+        const day = date.toLocaleString('default', { day: '2-digit' });
+
+        return [year, month, day].join('-');
+    }
+
+    function TestGoogleSignIn() {
+        // Your Firebase project configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyArSJdBYmbe5DCm-GPIiI6pQhST3339y2Y",
+            authDomain: "money-2d647.firebaseapp.com",
+            projectId: "money-2d647",
+            storageBucket: "money-2d647.appspot.com",
+            messagingSenderId: "500868205949",
+            appId: "1:500868205949:web:b1e09ab66cb9e4150a1014",
+            measurementId: "G-EXEY5KVSWP"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        const provider = new firebase.auth.GoogleAuthProvider();
+        firebase.auth().signInWithPopup(provider)
+            .then(function (result) {
+                const token = result.credential.accessToken;
+                console.log(result);
+                //window.localStorage.setItem("accessToken", result.credential.accessToken);
+                const user = result.user;
+                if (user) {
+                    user.getIdToken().then((tkn) => {
+                        // set access token in session storage
+                        window.localStorage.setItem("accessToken", tkn);
+                        //setAuthorizedUser(true);
+                    })
+                }
+            })
+            .catch(function (error) {
+                console.error(error);
+            });
+    }
+
+    document.getElementById('bill-date').value = FormatDate(new Date());
+
+    $(document).ready(function () {
+        // 點擊新增項目
+        $("#js-save-bill").click(function (e) {
+            e.preventDefault();
+
+            $.ajax({
+                type: 'POST',
+                url: `/api/bill/addBill`,
+                headers: {
+                    "Authorization": `Bearer ${window.localStorage.getItem("accessToken")}`
+                },
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify({
+                    name: $("#bill-name").val(),
+                    desc: $("#bill-desc").val(),
+                    num: $("#bill-number").val(),
+                    splitBy: $("#bill-split-type").val(),
+                    billDate: $("#bill-date").val()
+                }),
+                beforeSend: function () {
+                    $(".loader-container").css("display", "block");
+                },
+                complete: function () {
+                    $(".loader-container").css("display", "none");
+                },
+                success: function (res) {
+                    if (res.status === true) {
+                        var modalEle = document.getElementById('add-modal');
+                        var modal = bootstrap.Modal.getInstance(modalEle)
+                        modal.hide();
+                        alert("增加成功！");
+                        window.location.reload(true);
+                    }
+                    else {
+                        alert("增加失敗..");
+                        $(".loader-container").css("display", "none");
+                    }
+                },
+                error: function (xhr, status, err) {
+                    console.log(err);
+                    alert("增加失敗..");
+                    if (xhr.status == 401) {
+                        window.location.href = "/login";
+                        return;
+                    }                   
+                }
+            });
+        });
+
+        // 點擊查詢時間
+        $("#js-query-date").click(function (e) {
+            e.preventDefault();
+
+            let [year,month] = ($("#js-month").val()).split("-");
+            $.ajax({
+                type: 'GET',
+                url: `/api/bill/GetBillMonthly/${Number(year)}/${Number(month)}`,
+                headers: {
+                    "Authorization": `Bearer ${window.localStorage.getItem("accessToken")}`
+                },
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                beforeSend: function () {
+                    $(".loader-container").css("display", "block");
+                },
+                complete: function () {
+                    $(".loader-container").css("display", "none");
+                },
+                success: function (res) {
+                    if (!res.status) {
+                        alert("查詢失敗");
+                        return;
+                    }
+                    // 更新日期範圍
+                    let startDate = `${year}/${month}/01`;
+                    let endDate = `${year}/${month}/${(new Date(year, Number(month), 0)).getDate()}`
+                    $(".js-date-range").text(`累計範圍 ${startDate} ~ ${endDate}`);
+
+                    if (res.result.bill.length == 0) {
+                        alert("查無資料");
+                        $(".js-bill-history").html("");
+                        $(".js-num-total").text(`$ 0`);
+                        return;
+                    }
+
+                    const template = Handlebars.compile($("#hbs-bill").html());
+                    const html = template({ hbs_bill: res.result.bill });
+                    $(".js-bill-history").html(html);                    
+                    $(".js-num-total").text(`$ ${res.result.total}`);
+                },
+                error: function (xhr, status, err) {
+                    console.log(err);
+                    alert("查詢失敗..");
+                    if (xhr.status == 401) {
+                        window.location.href = "/login";
+                        return;
+                    }
+                }
+            });
+        });
+
+        // 點擊刪除某個項目
+        $("body").on("click", ".js-remove-btn", function (e) {
+            e.preventDefault();
+
+            let index = this.id.replace("js-remove-", "");
+            let value = $(`#js-doc-${index}`).val();
+
+            $.ajax({
+                type: 'POST',
+                url: `/api/bill/DeleteBill/docID/${value}`,
+                headers: {
+                    "Authorization": `Bearer ${window.localStorage.getItem("accessToken")}`
+                },
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                beforeSend: function () {
+                    $(".loader-container").css("display", "block");
+                },
+                complete: function () {
+                },
+                success: function (res) {
+                    if (res.status === true) {
+                        alert("移除成功！");
+                        window.location.reload(true);
+                    }
+                    else {
+                        alert("移除失敗");
+                        $(".loader-container").css("display", "none");
+                    }
+                },
+                error: function (xhr, status, err) {
+                    console.log(err);
+                    alert("增加失敗..");
+                    if (xhr.status == 401) {
+                        window.location.href = "/login";
+                        return;
+                    }
+                }
+            });
+        })
+    });
+</script>

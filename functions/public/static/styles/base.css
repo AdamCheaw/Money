@@ -1,0 +1,82 @@
+.panel {
+    padding: 1.5rem;
+    margin-right: 0;
+    margin-left: 0;
+    border: 1px solid #495057;
+    border-radius: 0.375rem;
+}
+
+.bill-history {
+}
+
+    .bill-history .item {
+        display: flex;
+        justify-content: space-between;
+        border-bottom: 1px solid #495057;
+        padding: 10px 0px 10px 0px;
+    }
+
+        .bill-history .item:last-child {
+            border-bottom: 0;
+        }
+
+        .bill-history .item .title {
+            /*font-size: 0.9rem;*/
+        }
+
+        .bill-history .item .small-txt {
+            font-size: 0.9rem;
+            color: #868e96
+        }
+
+        .bill-history .item .bill {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            flex-direction: column;
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+
+.loader-container {
+    display: none;
+}
+
+.loader-page-full {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    color: #404248;
+    background-color: rgba(230, 232, 235, 0.8); /* Semi-transparent white background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999; /* Make sure the loader is on top of other elements */
+}
+
+.loading-text-spinner {
+    font-weight: bold;
+    /*font-family: monospace;*/
+    font-size: 2.5rem;
+    display: inline-flex;
+}
+
+    .loading-text-spinner::before {
+        color: #404248;
+        content: "Load";
+        animation: spin 2s infinite;
+    }
+
+    .loading-text-spinner::after {
+        color: #404248;
+        content: "ing...";
+        animation: spin 2s infinite 1s;
+    }
+
+@keyframes spin {
+    50%, 100% {
+        transform: rotate(1turn);
+    }
+}

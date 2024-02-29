@@ -1,0 +1,77 @@
+<div class="container">
+    <div class="panel mt-3 d-flex align-items-center justify-content-center">
+        <button type="button" class="btn btn-light btn-lg" id="js-google-login"><i class="fa-brands fa-google"></i> 帳號登入</button>
+    </div>
+</div>
+
+<script>
+    function GoogleAuth() {
+        //// Your Firebase project configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyArSJdBYmbe5DCm-GPIiI6pQhST3339y2Y",
+            authDomain: "money-2d647.firebaseapp.com",
+            projectId: "money-2d647",
+            storageBucket: "money-2d647.appspot.com",
+            messagingSenderId: "500868205949",
+            appId: "1:500868205949:web:b1e09ab66cb9e4150a1014",
+            measurementId: "G-EXEY5KVSWP"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        const provider = new firebase.auth.GoogleAuthProvider();
+        firebase.auth().signInWithPopup(provider)
+            .then(function (result) {
+                const token = result.credential.accessToken;
+                console.log(result);
+                const user = result.user;
+                if (user) {
+                    user.getIdToken().then((token) => {
+                        // set access token in session storage
+                        window.localStorage.setItem("accessToken", token);
+                        SessionLogin(token);
+                    })
+                }
+            })
+            .catch(function (error) {
+                console.error(error);
+            });
+    }
+
+    function SessionLogin(token) {
+        $.ajax({
+            type: 'GET',
+            url: `/sessionLogin`,
+            headers: {
+                "Authorization": `Bearer ${token}`
+            },
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",            
+            beforeSend: function () {
+                $(".loader-container").css("display", "block");
+            },
+            complete: function () {
+                
+            },
+            success: function (res) {
+                if (!res.status) {
+                    alert("登入失敗");
+                    $(".loader-container").css("display", "none");
+                    return;
+                }
+                console.log(res);
+                window.location.href = "/";
+            },
+            error: function (err) {
+                console.log(err);
+            }
+        });
+    }
+
+    $("#js-google-login").click(function (e) {
+        e.preventDefault();
+
+        GoogleAuth();
+    });
+</script>
