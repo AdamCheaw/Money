@@ -1,6 +1,7 @@
 const billModel = require('../../models/bill_model');
 const firebase = require('firebase-admin');
 const { FilterXSS, CheckRegex } = require('../../utils/validate-helpers');
+const logger = require("firebase-functions/logger");
 
 async function AddBill(req, res) {
     try {
@@ -28,7 +29,7 @@ async function AddBill(req, res) {
         res.json({ status: true });
     }
     catch (error) {
-        console.error('Error:', error);
+        logger.error(`billApi_controller 'AddBill' failed. Error: ${error}`);
         res.status(500).send('Internal Server Error');
     }
 }
@@ -46,7 +47,7 @@ async function GetBillAndTotalByMonthly(req, res) {
         res.json({ status: true, result: result });
     }
     catch (error) {
-        console.error('Error:', error);
+        logger.error(`billApi_controller 'GetBillAndTotalByMonthly' failed. Error: ${error}`);
         res.status(500).send('Internal Server Error');
     }
 }
@@ -64,7 +65,7 @@ async function DeleteBillByID(req, res) {
         res.json({ status: true });
     }
     catch (error) {
-        console.error('Error:', error);
+        logger.error(`billApi_controller 'DeleteBillByID' failed. Error: ${error}`);
         res.status(500).send('Internal Server Error');
     }
 }

@@ -25,11 +25,16 @@ app.use(express.static('public'));
 app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(cors());
+app.use((req, res, next) => {
+    // Remove the 'X-Powered-By' header
+    res.removeHeader('X-Powered-By');
+    next();
+});
 
 app.use('/api/bill', billAPIRoutes);
 app.get('/test', CheckIsAllowedAPI, (req, res) => { res.send('Hello, test!') });
 app.get('/', CheckIsAllowedPage, billController.RenderIndexPage); 
-app.get('/login', (req, res) => { res.render('google_login', {}) })
+app.get('/login', (req, res) => { res.render('google_login', {}) });
 app.get('/sessionLogout', CheckIsAllowedAPI, SessionLogout);
 app.get('/sessionLogin', SessionLogin);
 

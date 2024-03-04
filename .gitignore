@@ -67,3 +67,4 @@ node_modules/
 
 # firebase admin key
 money-firebase-adminsdk.json
+"functions/keys/money-firebase-adminsdk.json" 

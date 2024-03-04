@@ -1,4 +1,5 @@
 const billModel = require('../../models/bill_model');
+const logger = require("firebase-functions/logger");
 
 async function RenderIndexPage(req, res) {
     try {
@@ -15,7 +16,7 @@ async function RenderIndexPage(req, res) {
         res.render('index_page', { total: result.total, dateRange: dateRange, bill: result.bill, user: req.user.name });
     }
     catch (error) {
-        console.error('Error:', error);
+        logger.error(`bill_controller 'RenderIndexPage' failed. Error: ${error}`);
         res.status(500).send('Internal Server Error');
     }
 }
