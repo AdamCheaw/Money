@@ -70,6 +70,41 @@ async function DeleteBillByID(req, res) {
     }
 }
 
+async function EditBillByID(req, res) {
+    try {
+        const { docID } = req.params;
+        if (!CheckRegex(docID, /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)) {
+            res.json({ status: false, error: "Param is Not Valid" });
+            return;
+        }
+
+        const { name, desc, num, splitBy, billDate } = req.body;
+        if (!CheckRegex(FilterXSS(name), /\S/) ||
+            !CheckRegex(num, /^\d+$/) ||
+            !CheckRegex(splitBy, /^\d+$/) ||
+            !CheckRegex(billDate, /^\d{4}-\d{2}-\d{2}$/)) {
+            res.json({ status: false, error: "param is not valid" });
+            return;
+        }
+
+        const [year, month, day] = billDate.split('-').map(Number);
+        const bill = {
+            Name: FilterXSS(name),
+            Desc: FilterXSS(desc),
+            Num: Number(num),
+            SplitBy: Number(splitBy),
+            Bill_Date: new Date(year, month - 1, day, 0, 0, 0),
+        };
+        await billModel.UpdateBillBy_ID(docID, bill);
+
+        res.json({ status: true });
+    }
+    catch (error) {
+        logger.error(`billApi_controller 'EditBillByID' failed. Error: ${error}`);
+        res.status(500).send('Internal Server Error');
+    }   
+}
+
 module.exports = {
-    AddBill, GetBillAndTotalByMonthly, DeleteBillByID
+    AddBill, GetBillAndTotalByMonthly, DeleteBillByID, EditBillByID
 }

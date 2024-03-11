@@ -72,6 +72,18 @@ async function DeleteBillBy_ID(docID) {
     }
 }
 
+async function UpdateBillBy_ID(docID, updateBill) {
+    try {
+        const docRef = db.collection('Bill').doc(docID);
+        await docRef.update(updateBill);
+
+        console.log(`Document id: ${docID} , Bill is update`);
+    }
+    catch (error) {
+        throw error;
+    }
+}
+
 module.exports = {
-    InsertBill, GetBillAndTotalBy_DateRange_UID, DeleteBillBy_ID
+    InsertBill, GetBillAndTotalBy_DateRange_UID, DeleteBillBy_ID, UpdateBillBy_ID
 }

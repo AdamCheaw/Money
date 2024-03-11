@@ -8,7 +8,7 @@
         <div class="card-body">
             <p class="js-date-range">本月累計 {{dateRange.startDate}} ~ {{dateRange.endDate}}</p>
             <h5 class="js-num-total">$ {{total}}</h5>
-            <a href="#" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#add-modal"><i class="fa fa-plus-circle"></i> 增加項目 </a>
+            <a href="#" class="btn btn-dark" id="js-add"><i class="fa fa-plus-circle"></i> 增加項目 </a>
         </div>
     </div>
     <div class="panel mt-3 mb-3">
@@ -68,11 +68,11 @@
         </div>
     </div>
 
-    <div class="modal fade" tabindex="-1" id="add-modal" aria-labelledby="add-modal-label" aria-hidden="true">
+    <div class="modal fade" tabindex="-1" id="form-modal" aria-labelledby="form-modal-label" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">增加項目</h5>
+                    <h5 class="modal-title" id="js-form-title">增加項目</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -116,6 +116,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
                     <button type="button" class="btn btn-primary" id="js-save-bill">確認儲存</button>
+                    <input type="hidden" id="js-save-mode" value="" />
                 </div>
             </div>
         </div>
@@ -148,6 +149,9 @@
 </script>
     
 <script>
+    let _billBuffer = {{{ StringifyJSON bill }}};
+    let _docID = "";
+
     Handlebars.registerHelper("DisplayNumber", function (splitBy, num) {
         if (splitBy == 0) {
             return `<div>$${num}</div>`;
@@ -167,91 +171,153 @@
         return [year, month, day].join('-');
     }
 
-    function TestGoogleSignIn() {
-        // Your Firebase project configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyArSJdBYmbe5DCm-GPIiI6pQhST3339y2Y",
-            authDomain: "money-2d647.firebaseapp.com",
-            projectId: "money-2d647",
-            storageBucket: "money-2d647.appspot.com",
-            messagingSenderId: "500868205949",
-            appId: "1:500868205949:web:b1e09ab66cb9e4150a1014",
-            measurementId: "G-EXEY5KVSWP"
-        };
+    function SwitchFormModal(mode, action) {
+        // 切換表單標題文字
+        if (mode == "insert") {
+            $("#js-form-title").text("增加項目");
+            $("#js-save-mode").val(mode);
+        }
+        else if (mode == "update") {
+            $("#js-form-title").text("修改項目");
+            $("#js-save-mode").val(mode);
+        }
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
+        // 顯示/隱藏視窗
+        const modalEle = document.getElementById('form-modal');
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEle);
+        if (action == "show") {
+            modal.show();
+        }
+        else if (action == "hide") {           
+            modal.hide();
+        }
+    }
 
-        const provider = new firebase.auth.GoogleAuthProvider();
-        firebase.auth().signInWithPopup(provider)
-            .then(function (result) {
-                const token = result.credential.accessToken;
-                console.log(result);
-                //window.localStorage.setItem("accessToken", result.credential.accessToken);
-                const user = result.user;
-                if (user) {
-                    user.getIdToken().then((tkn) => {
-                        // set access token in session storage
-                        window.localStorage.setItem("accessToken", tkn);
-                        //setAuthorizedUser(true);
-                    })
+    function ResetForm() {
+        $("#bill-name").val("");
+        $("#bill-name").val("");
+        $("#bill-number").val("");
+        $("#bill-split-type").val("");
+        $("#bill-date").val(FormatDate(new Date()));
+    }
+
+    function LoadToForm(obj) {
+        $("#bill-name").val(obj.name);
+        $("#bill-desc").val(obj.desc);
+        $("#bill-number").val(obj.num);
+        $("#bill-split-type").val(obj.splitBy);
+        $("#bill-date").val(obj.billDate);
+    }
+
+    function SendAddBillReq() {
+        $.ajax({
+            type: 'POST',
+            url: `/api/bill/addBill`,
+            headers: {
+                "Authorization": `Bearer ${window.localStorage.getItem("accessToken")}`
+            },
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            data: JSON.stringify({
+                name: $("#bill-name").val(),
+                desc: $("#bill-desc").val(),
+                num: $("#bill-number").val(),
+                splitBy: $("#bill-split-type").val(),
+                billDate: $("#bill-date").val()
+            }),
+            beforeSend: function () {
+                $(".loader-container").css("display", "block");
+            },
+            complete: function () {
+                $(".loader-container").css("display", "none");
+            },
+            success: function (res) {
+                if (res.status === true) {
+                    SwitchFormModal("insert", "hide");
+                    toastr["success"]("增加成功！");
+                    window.location.reload(true);
                 }
-            })
-            .catch(function (error) {
-                console.error(error);
-            });
+                else {
+                    toastr["error"]("增加失敗！");
+                    $(".loader-container").css("display", "none");
+                }
+            },
+            error: function (xhr, status, err) {
+                console.log(err);
+                toastr["error"]("增加失敗！");
+                if (xhr.status == 401) {
+                    window.location.href = "/login";
+                    return;
+                }
+            }
+        });
+    }
+
+    function SendUpdateBillReq(docID) {
+        $.ajax({
+            type: 'POST',
+            url: `/api/bill/EditBill/docID/${docID}`,
+            headers: {
+                "Authorization": `Bearer ${window.localStorage.getItem("accessToken")}`
+            },
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            data: JSON.stringify({
+                name: $("#bill-name").val(),
+                desc: $("#bill-desc").val(),
+                num: $("#bill-number").val(),
+                splitBy: $("#bill-split-type").val(),
+                billDate: $("#bill-date").val()
+            }),
+            beforeSend: function () {
+                $(".loader-container").css("display", "block");
+            },
+            complete: function () {
+                $(".loader-container").css("display", "none");
+            },
+            success: function (res) {
+                if (res.status === true) {
+                    SwitchFormModal("update", "hide");
+                    toastr["success"]("更新成功！");
+                    window.location.reload(true);
+                }
+                else {
+                    toastr["error"]("更新失敗！");
+                    $(".loader-container").css("display", "none");
+                }
+            },
+            error: function (xhr, status, err) {
+                console.log(err);
+                toastr["error"]("更新失敗！");
+                if (xhr.status == 401) {
+                    window.location.href = "/login";
+                    return;
+                }
+            }
+        });
     }
 
     document.getElementById('bill-date').value = FormatDate(new Date());
 
     $(document).ready(function () {
         // 點擊新增項目
+        $("#js-add").click(function (e) {
+            e.preventDefault();
+            ResetForm();
+            SwitchFormModal("insert", "show");
+        });
+
+        // 點擊確認儲存新增項目
         $("#js-save-bill").click(function (e) {
             e.preventDefault();
+            let saveMode = $("#js-save-mode").val();
 
-            $.ajax({
-                type: 'POST',
-                url: `/api/bill/addBill`,
-                headers: {
-                    "Authorization": `Bearer ${window.localStorage.getItem("accessToken")}`
-                },
-                contentType: "application/json; charset=utf-8",
-                dataType: "json",
-                data: JSON.stringify({
-                    name: $("#bill-name").val(),
-                    desc: $("#bill-desc").val(),
-                    num: $("#bill-number").val(),
-                    splitBy: $("#bill-split-type").val(),
-                    billDate: $("#bill-date").val()
-                }),
-                beforeSend: function () {
-                    $(".loader-container").css("display", "block");
-                },
-                complete: function () {
-                    $(".loader-container").css("display", "none");
-                },
-                success: function (res) {
-                    if (res.status === true) {
-                        var modalEle = document.getElementById('add-modal');
-                        var modal = bootstrap.Modal.getInstance(modalEle)
-                        modal.hide();
-                        alert("增加成功！");
-                        window.location.reload(true);
-                    }
-                    else {
-                        alert("增加失敗..");
-                        $(".loader-container").css("display", "none");
-                    }
-                },
-                error: function (xhr, status, err) {
-                    console.log(err);
-                    alert("增加失敗..");
-                    if (xhr.status == 401) {
-                        window.location.href = "/login";
-                        return;
-                    }                   
-                }
-            });
+            if (saveMode == "insert") {
+                SendAddBillReq();
+            }
+            else if (saveMode == "update") {
+                SendUpdateBillReq(_docID);
+            }           
         });
 
         // 點擊查詢時間
@@ -275,7 +341,7 @@
                 },
                 success: function (res) {
                     if (!res.status) {
-                        alert("查詢失敗");
+                        toastr["error"]("查詢失敗!");
                         return;
                     }
                     // 更新日期範圍
@@ -284,7 +350,7 @@
                     $(".js-date-range").text(`累計範圍 ${startDate} ~ ${endDate}`);
 
                     if (res.result.bill.length == 0) {
-                        alert("查無資料");
+                        toastr["warning"]("查無資料!");
                         $(".js-bill-history").html("");
                         $(".js-num-total").text(`$ 0`);
                         return;
@@ -297,7 +363,7 @@
                 },
                 error: function (xhr, status, err) {
                     console.log(err);
-                    alert("查詢失敗..");
+                    toastr["error"]("查詢失敗!");
                     if (xhr.status == 401) {
                         window.location.href = "/login";
                         return;
@@ -328,17 +394,17 @@
                 },
                 success: function (res) {
                     if (res.status === true) {
-                        alert("移除成功！");
+                        toastr["success"]("移除成功！");
                         window.location.reload(true);
                     }
                     else {
-                        alert("移除失敗");
+                        toastr["error"]("移除失敗!");
                         $(".loader-container").css("display", "none");
                     }
                 },
                 error: function (xhr, status, err) {
                     console.log(err);
-                    alert("增加失敗..");
+                    toastr["error"]("移除失敗!");
                     if (xhr.status == 401) {
                         window.location.href = "/login";
                         return;
@@ -346,5 +412,17 @@
                 }
             });
         })
+
+        // 點擊修改某個項目
+        $("body").on("click", ".js-edit-btn", function (e) {
+            e.preventDefault();
+
+            let index = this.id.replace("js-edit-", "");
+            _docID = $(`#js-doc-${index}`).val();
+
+            let bill = _billBuffer[index];
+            LoadToForm(bill);
+            SwitchFormModal("update", "show");
+        });
     });
 </script>
