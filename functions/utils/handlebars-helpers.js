@@ -1,3 +1,4 @@
+const logger = require("firebase-functions/logger");
 
 module.exports = {
     ifeq: function (a, b, options) {
@@ -12,6 +13,19 @@ module.exports = {
         }
         else {
             return `<div>$${(Number(num) / Number(splitBy)).toFixed(2)}</div><div class="small-txt">$${num}/${splitBy}</div>`;
+        }
+    },
+    StringifyJSON: function (obj) {
+        if (obj === null || obj === undefined || typeof obj !== 'object' || Object.keys(obj).length === 0) {
+            return "{}";
+        }
+
+        try {
+            return JSON.stringify(obj);
+        }
+        catch (error) {
+            logger.error(error);
+            return "{}";
         }
     }
 }
