@@ -344,6 +344,9 @@
                         toastr["error"]("查詢失敗!");
                         return;
                     }
+                    // 重新載入Buffer
+                    _billBuffer = res.result.bill;
+
                     // 更新日期範圍
                     let startDate = `${year}/${month}/01`;
                     let endDate = `${year}/${month}/${(new Date(year, Number(month), 0)).getDate()}`
@@ -353,6 +356,7 @@
                         toastr["warning"]("查無資料!");
                         $(".js-bill-history").html("");
                         $(".js-num-total").text(`$ 0`);
+                        _billBuffer = {};
                         return;
                     }
 
